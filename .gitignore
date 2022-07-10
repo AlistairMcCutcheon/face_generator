@@ -130,3 +130,7 @@ dmypy.json
 
 # data files
 data/
+
+# poetry
+poetry.lock
+pyproject.toml
