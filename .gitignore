@@ -134,3 +134,6 @@ data/
 # poetry
 poetry.lock
 pyproject.toml
+
+# vscode
+.vscode/
