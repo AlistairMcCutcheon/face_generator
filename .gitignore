@@ -137,3 +137,6 @@ pyproject.toml
 
 # vscode
 .vscode/
+
+# tensorboard
+runs/
