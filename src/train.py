@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from discriminator import Discriminator
 from generator import Generator
 from torch import nn
+from torch import optim
 
 
 def parameters_init(module):
@@ -48,20 +49,27 @@ writer.add_image("sample_batch/test", test_batch_grid, 0)
 
 
 noise_size = 100
-generator_model = Generator(noise_size=noise_size, number_generator_features=64)
-generator_model.apply(parameters_init)
+model_generator = Generator(noise_size=noise_size, number_generator_features=64)
+model_generator.apply(parameters_init)
 
-discriminator_model = Discriminator(number_discriminator_features=64)
-discriminator_model.apply(parameters_init)
+model_descriminator = Discriminator(number_discriminator_features=64)
+model_descriminator.apply(parameters_init)
 
 batch_size = 32
 noise = torch.randn(batch_size, noise_size, 1, 1)
-generated_imgs = generator_model(noise)
+generated_imgs = model_generator(noise)
 
 generated_imgs_grid = torchvision.utils.make_grid(generated_imgs)
 writer.add_image("generated_images", generated_imgs_grid, 0)
 
-chances = discriminator_model(generated_imgs)
-chances = chances.reshape(-1)
-print(chances)
+
+lr = 0.0002
+adam_beta1 = 0.5
+optimiser_generator = optim.Adam(model_generator.parameters(), lr, (adam_beta1, 0.999))
+optimiser_discriminator = optim.Adam(
+    model_descriminator.parameters(), lr, (adam_beta1, 0.999)
+)
+
+criterion = nn.BCELoss()
+
 writer.close()
