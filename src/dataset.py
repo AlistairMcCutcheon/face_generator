@@ -28,6 +28,7 @@ class FaceDataset(Dataset):
         return out
 
     def __init__(self, img_paths, transform=None):
+        # http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
         self.img_paths = img_paths
         self.transform = transform
 
