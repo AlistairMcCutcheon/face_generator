@@ -14,14 +14,11 @@ required_transforms = transforms.Compose(
         transforms.CenterCrop((img_size, img_size)),
     ]
 )
-train_transforms = transforms.Compose(
-    [*required_transforms.transforms, transforms.GaussianBlur(15)]
-)
 
 partitioned_img_paths = FaceDataset.partition_img_paths(
     "data/img_align_celeba/", (0.8, 0.2)
 )
-train_dataset = FaceDataset(partitioned_img_paths[0], train_transforms)
+train_dataset = FaceDataset(partitioned_img_paths[0], required_transforms)
 test_dataset = FaceDataset(partitioned_img_paths[1], required_transforms)
 
 batch_size = 32
