@@ -9,6 +9,7 @@ from discriminator import Discriminator
 from generator import Generator
 from torch import nn
 from torch import optim
+from model import ModelGAN
 
 
 def parameters_init(module):
@@ -41,27 +42,11 @@ batch_size = 32
 train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True)
 test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True)
 
-writer = SummaryWriter()
-train_batch_grid = torchvision.utils.make_grid(next(iter(train_dataloader)))
-test_batch_grid = torchvision.utils.make_grid(next(iter(test_dataloader)))
-writer.add_image("sample_batch/train", train_batch_grid, 0)
-writer.add_image("sample_batch/test", test_batch_grid, 0)
-
-
-noise_size = 100
+noise_size = 64
 model_generator = Generator(noise_size=noise_size, number_generator_features=64)
 model_generator.apply(parameters_init)
-
 model_descriminator = Discriminator(number_discriminator_features=64)
 model_descriminator.apply(parameters_init)
-
-batch_size = 32
-noise = torch.randn(batch_size, noise_size, 1, 1)
-generated_imgs = model_generator(noise)
-
-generated_imgs_grid = torchvision.utils.make_grid(generated_imgs)
-writer.add_image("generated_images", generated_imgs_grid, 0)
-
 
 lr = 0.0002
 adam_beta1 = 0.5
@@ -71,5 +56,29 @@ optimiser_discriminator = optim.Adam(
 )
 
 criterion = nn.BCELoss()
+
+fixed_noise = torch.randn(batch_size, noise_size, 1, 1)
+
+gan = ModelGAN(
+    model_generator,
+    model_descriminator,
+    optimiser_generator,
+    optimiser_discriminator,
+    criterion,
+    train_dataloader,
+    test_dataloader,
+    fixed_noise,
+)
+
+
+writer = SummaryWriter()
+train_batch_grid = torchvision.utils.make_grid(next(iter(gan.train_dataloader)))
+test_batch_grid = torchvision.utils.make_grid(next(iter(gan.test_dataloader)))
+writer.add_image("sample_batch/train", train_batch_grid, 0)
+writer.add_image("sample_batch/test", test_batch_grid, 0)
+
+fixed_noise_imgs = model_generator(gan.fixed_noise)
+fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
+writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
 
 writer.close()
