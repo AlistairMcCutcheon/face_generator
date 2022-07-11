@@ -80,7 +80,7 @@ test_batch_grid = torchvision.utils.make_grid(next(iter(gan.test_dataloader)))
 writer.add_image("sample_batch/train", train_batch_grid, 0)
 writer.add_image("sample_batch/test", test_batch_grid, 0)
 
-fixed_noise_imgs = gan.generator.generator(gan.fixed_noise)
+fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
 fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
 writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
 

@@ -22,12 +22,12 @@ class ModelGAN:
 
 
 class ModelGenerator:
-    def __init__(self, generator, optimiser):
-        self.generator = generator
+    def __init__(self, model, optimiser):
+        self.model = model
         self.optimiser = optimiser
 
 
 class ModelDiscriminator:
-    def __init__(self, discriminator, optimiser):
-        self.discriminator = discriminator
+    def __init__(self, model, optimiser):
+        self.model = model
         self.optimiser = optimiser
