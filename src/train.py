@@ -57,8 +57,6 @@ optimiser_discriminator = optim.Adam(
     network_discriminator.parameters(), lr, (adam_beta1, 0.999)
 )
 
-fixed_noise = torch.randn(batch_size, noise_size, 1, 1)
-
 model_generator = ModelGenerator(network_generator, optimiser_generator)
 model_discriminator = ModelDiscriminator(network_discriminator, optimiser_discriminator)
 
@@ -70,7 +68,6 @@ gan = ModelGAN(
     criterion,
     train_dataloader,
     test_dataloader,
-    fixed_noise,
 )
 
 
@@ -83,5 +80,12 @@ writer.add_image("sample_batch/test", test_batch_grid, 0)
 fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
 fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
 writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
+
+epochs = 20
+for epoch in range(epochs):
+    gan.train_one_epoch()
+    fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
+    fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
+    writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
 
 writer.close()
