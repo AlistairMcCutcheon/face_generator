@@ -4,6 +4,7 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 import torch
 from torch.utils.data import DataLoader
+from discriminator import Discriminator
 from generator import Generator
 
 img_size = 64
@@ -40,4 +41,9 @@ generated_imgs = generator_model(noise)
 
 generated_imgs_grid = torchvision.utils.make_grid(generated_imgs)
 writer.add_image("generated_images", generated_imgs_grid, 0)
+
+discriminator_model = Discriminator(number_discriminator_features=64)
+chances = discriminator_model(generated_imgs)
+chances = chances.reshape(-1)
+print(chances)
 writer.close()
