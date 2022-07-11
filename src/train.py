@@ -9,7 +9,7 @@ from discriminator import Discriminator
 from generator import Generator
 from torch import nn
 from torch import optim
-from model import ModelGAN
+from model import *
 
 
 def parameters_init(module):
@@ -43,27 +43,30 @@ train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True)
 test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True)
 
 noise_size = 64
-model_generator = Generator(noise_size=noise_size, number_generator_features=64)
-model_generator.apply(parameters_init)
-model_descriminator = Discriminator(number_discriminator_features=64)
-model_descriminator.apply(parameters_init)
+network_generator = Generator(noise_size=noise_size, number_generator_features=64)
+network_generator.apply(parameters_init)
+network_discriminator = Discriminator(number_discriminator_features=64)
+network_discriminator.apply(parameters_init)
 
 lr = 0.0002
 adam_beta1 = 0.5
-optimiser_generator = optim.Adam(model_generator.parameters(), lr, (adam_beta1, 0.999))
-optimiser_discriminator = optim.Adam(
-    model_descriminator.parameters(), lr, (adam_beta1, 0.999)
+optimiser_generator = optim.Adam(
+    network_generator.parameters(), lr, (adam_beta1, 0.999)
 )
-
-criterion = nn.BCELoss()
+optimiser_discriminator = optim.Adam(
+    network_discriminator.parameters(), lr, (adam_beta1, 0.999)
+)
 
 fixed_noise = torch.randn(batch_size, noise_size, 1, 1)
 
+model_generator = ModelGenerator(network_generator, optimiser_generator)
+model_discriminator = ModelDiscriminator(network_discriminator, optimiser_discriminator)
+
+criterion = nn.BCELoss()
+
 gan = ModelGAN(
     model_generator,
-    model_descriminator,
-    optimiser_generator,
-    optimiser_discriminator,
+    model_discriminator,
     criterion,
     train_dataloader,
     test_dataloader,
@@ -77,7 +80,7 @@ test_batch_grid = torchvision.utils.make_grid(next(iter(gan.test_dataloader)))
 writer.add_image("sample_batch/train", train_batch_grid, 0)
 writer.add_image("sample_batch/test", test_batch_grid, 0)
 
-fixed_noise_imgs = model_generator(gan.fixed_noise)
+fixed_noise_imgs = gan.generator.generator(gan.fixed_noise)
 fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
 writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
 

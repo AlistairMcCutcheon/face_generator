@@ -6,8 +6,6 @@ class ModelGAN:
         self,
         model_generator,
         model_descriminator,
-        optimiser_generator,
-        optimiser_discriminator,
         criterion,
         train_dataloader,
         test_dataloader,
@@ -15,11 +13,21 @@ class ModelGAN:
     ):
         self.generator = model_generator
         self.discriminator = model_descriminator
-        self.optimiser_generator = optimiser_generator
-        self.optimiser_discriminator = optimiser_discriminator
         self.criterion = criterion
         self.train_dataloader = train_dataloader
         self.test_dataloader = test_dataloader
         self.fixed_noise = fixed_noise
 
     pass
+
+
+class ModelGenerator:
+    def __init__(self, generator, optimiser):
+        self.generator = generator
+        self.optimiser = optimiser
+
+
+class ModelDiscriminator:
+    def __init__(self, discriminator, optimiser):
+        self.discriminator = discriminator
+        self.optimiser = optimiser
