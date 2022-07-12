@@ -23,24 +23,31 @@ class ModelGAN:
             torch.autograd.set_detect_anomaly(True)
             # train discriminator on real images
             self.discriminator.optimiser.zero_grad()
-            print(img_batch.shape)
-            real_imgs_output = self.discriminator.model(img_batch)
+            real_imgs_output = self.discriminator.model(img_batch).view(-1)
             labels = torch.full((len(img_batch),), 1.0)
-            loss = self.criterion(real_imgs_output.squeeze(), labels)
-            loss.backward()
+            loss_real_imgs = self.criterion(real_imgs_output, labels)
+            loss_real_imgs.backward(retain_graph=True)
+            print("")
+            print(f"Loss real images: {loss_real_imgs}")
+
             # train discriminator on fake images
-            self.generator.optimiser.zero_grad()
             fake_imgs = self.generator.model(self.generate_noise(32, 64))
-            fake_imgs_output = self.discriminator.model(fake_imgs)
+            fake_imgs_output = self.discriminator.model(fake_imgs.detach()).view(-1)
             labels = torch.full((len(img_batch),), 0.0)
-            loss = self.criterion(fake_imgs_output.squeeze(), labels)
-            loss.backward(retain_graph=True)
+            loss_fake_imgs = self.criterion(fake_imgs_output, labels)
+            loss_fake_imgs.backward(retain_graph=True)
             self.discriminator.optimiser.step()
+            print(f"Loss fake images: {loss_fake_imgs}")
+            print(f"Total discriminator loss: {loss_real_imgs + loss_fake_imgs}")
+
             # train generator
-            labels = torch.full((len(img_batch),), 1.0) - fake_imgs_output.squeeze()
-            loss = self.criterion(fake_imgs_output.squeeze(), labels)
-            loss.backward()
+            self.generator.optimiser.zero_grad()
+            fake_imgs_output = self.discriminator.model(fake_imgs.detach()).view(-1)
+            labels = torch.full((len(img_batch),), 1.0)
+            loss_generator = self.criterion(fake_imgs_output, labels)
+            loss_generator.backward()
             self.generator.optimiser.step()
+            print(f"Loss Generator: {loss_generator}")
 
     def generate_noise(self, batch_size, noise_size):
         return torch.randn(batch_size, noise_size, 1, 1)
