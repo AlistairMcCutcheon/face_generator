@@ -9,6 +9,7 @@ from discriminator import Discriminator
 from generator import Generator
 from torch import nn
 from torch import optim
+from torch import cuda
 from model import *
 
 
@@ -21,6 +22,8 @@ def parameters_init(module):
         nn.init.normal_(module.weight, 1, 0.02)
         nn.init.constant_(module.bias, 0)
 
+
+print(cuda.is_available())
 
 img_size = 64
 required_transforms = transforms.Compose(
@@ -39,8 +42,8 @@ train_dataset = FaceDataset(partitioned_img_paths[0], required_transforms)
 test_dataset = FaceDataset(partitioned_img_paths[1], required_transforms)
 
 batch_size = 32
-train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True)
-test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True)
+train_dataloader = DataLoader(train_dataset, batch_size, shuffle=True, num_workers=2)
+test_dataloader = DataLoader(test_dataset, batch_size, shuffle=True, num_workers=2)
 
 noise_size = 64
 network_generator = Generator(noise_size=noise_size, number_generator_features=64)
@@ -77,15 +80,15 @@ test_batch_grid = torchvision.utils.make_grid(next(iter(gan.test_dataloader)))
 writer.add_image("sample_batch/train", train_batch_grid, 0)
 writer.add_image("sample_batch/test", test_batch_grid, 0)
 
-fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
-fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
-writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
-
-epochs = 20
+# fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
+# fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
+# writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
+print(len(gan.train_dataloader))
+epochs = 100
 for epoch in range(epochs):
     gan.train_one_epoch()
     fixed_noise_imgs = gan.generator.model(gan.fixed_noise)
     fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
-    writer.add_image("generated_images", fixed_noise_imgs_grid, 0)
+    writer.add_image("generated_images", fixed_noise_imgs_grid, epoch)
 
 writer.close()
