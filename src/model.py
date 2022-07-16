@@ -30,9 +30,10 @@ class ModelGAN:
         total_generator_loss = 0
         for img_batch in self.train_dataloader:
             img_batch = img_batch.to(self.device)
-            
+
             # train discriminator on real images
             self.discriminator.optimiser.zero_grad()
+
             real_imgs_output = self.discriminator.model(img_batch).view(-1)
             labels = torch.full((len(img_batch),), 1.0).to(self.device)
             loss_real_imgs = self.criterion(real_imgs_output, labels)
@@ -52,7 +53,7 @@ class ModelGAN:
 
             # train generator
             self.generator.optimiser.zero_grad()
-            fake_imgs_output = self.discriminator.model(fake_imgs.detach()).view(-1)
+            fake_imgs_output = self.discriminator.model(fake_imgs).view(-1)
             labels = torch.full((len(img_batch),), 1.0).to(self.device)
             loss_generator = self.criterion(fake_imgs_output, labels)
             loss_generator.backward()
