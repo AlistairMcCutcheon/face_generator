@@ -30,6 +30,7 @@ def write_image_grid(writer, gan, inverse_transform, epoch):
     fixed_noise_imgs = inverse_transform(
         gan.generator.model(gan.noise_generator.fixed_noise)
     )
+    # fixed_noise_imgs = gan.generator.model(gan.noise_generator.fixed_noise)
     fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
     writer.add_image("generated_images", fixed_noise_imgs_grid, epoch)
 
@@ -40,14 +41,22 @@ required_transforms = transforms.Compose(
         transforms.ToTensor(),
         transforms.Resize((img_size, img_size)),
         transforms.CenterCrop((img_size, img_size)),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        # transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
     ]
 )
 
+# inverse_transform = transforms.Compose(
+#     [
+#         transforms.Normalize((0.0, 0.0, 0.0), (1 / 0.229, 1 / 0.224, 1 / 0.225)),
+#         transforms.Normalize((-0.485, -0.456, -0.406), (1.0, 1.0, 1.0)),
+#     ]
+# )
+
 inverse_transform = transforms.Compose(
     [
-        transforms.Normalize((0.0, 0.0, 0.0), (1 / 0.229, 1 / 0.224, 1 / 0.225)),
-        transforms.Normalize((-0.485, -0.456, -0.406), (1.0, 1.0, 1.0)),
+        transforms.Normalize((0.0, 0.0, 0.0), (1 / 0.5, 1 / 0.5, 1 / 0.5)),
+        transforms.Normalize((-0.5, -0.5, -0.5), (1, 1, 1)),
     ]
 )
 
