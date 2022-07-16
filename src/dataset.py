@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
+from torchvision import transforms
 import os
 
 
@@ -27,7 +28,7 @@ class FaceDataset(Dataset):
 
         return out
 
-    def __init__(self, img_paths, transform=None):
+    def __init__(self, img_paths, transform=transforms.Compose([])):
         # http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html
         self.img_paths = img_paths
         self.transform = transform
@@ -35,8 +36,7 @@ class FaceDataset(Dataset):
     def __getitem__(self, index):
         img = Image.open(self.img_paths[index])
         img = np.array(img)
-        if self.transform is not None:
-            img = self.transform(img)
+        img = self.transform(img)
         return img
 
     def __len__(self):
