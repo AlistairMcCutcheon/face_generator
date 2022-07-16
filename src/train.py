@@ -13,6 +13,7 @@ from torch import cuda
 from model import *
 from multiprocessing import cpu_count
 import numpy as np
+from noise_generator import NoiseGenerator
 
 def parameters_init(module):
     if isinstance(module, nn.ConvTranspose2d):
@@ -66,6 +67,9 @@ model_discriminator = ModelDiscriminator(network_discriminator, optimiser_discri
 criterion = nn.BCELoss()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+noise_generator = NoiseGenerator(batch_size, noise_size, device)
+
 print(device)
 gan = ModelGAN(
     model_generator,
@@ -73,6 +77,7 @@ gan = ModelGAN(
     criterion,
     train_dataloader,
     test_dataloader,
+    noise_generator,
     device
 )
 
@@ -90,7 +95,7 @@ print(len(gan.train_dataloader))
 epochs = 100
 for epoch in range(epochs):
     gan.train_one_epoch()
-    fixed_noise_imgs = inverse_transform(gan.generator.model(gan.fixed_noise))
+    fixed_noise_imgs = inverse_transform(gan.generator.model(gan.noise_generator.fixed_noise))
     fixed_noise_imgs_grid = torchvision.utils.make_grid(fixed_noise_imgs)
     writer.add_image("generated_images", fixed_noise_imgs_grid, epoch)
 

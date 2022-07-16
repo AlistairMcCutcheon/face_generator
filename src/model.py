@@ -10,6 +10,7 @@ class ModelGAN:
         criterion,
         train_dataloader,
         test_dataloader,
+        noise_generator,
         device,
     ):
         model_generator.model.to(device)
@@ -20,10 +21,8 @@ class ModelGAN:
         self.criterion = criterion
         self.train_dataloader = train_dataloader
         self.test_dataloader = test_dataloader
+        self.noise_generator = noise_generator
         self.device = device
-
-        self.fixed_noise = self.generate_noise(128, 64)
-        
 
     def train_one_epoch(self):
         total_discriminator_loss_real_imgs = 0
@@ -42,7 +41,7 @@ class ModelGAN:
             total_discriminator_loss_real_imgs += loss_real_imgs.item()
 
             # train discriminator on fake images
-            fake_imgs = self.generator.model(self.generate_noise(128, 64))
+            fake_imgs = self.generator.model(self.noise_generator.generate_noise())
             fake_imgs_output = self.discriminator.model(fake_imgs.detach()).view(-1)
             labels = torch.full((len(img_batch),), 0.0).to(self.device)
             loss_fake_imgs = self.criterion(fake_imgs_output, labels)
@@ -68,10 +67,6 @@ class ModelGAN:
             f"Total discriminator loss: {total_discriminator_loss_real_imgs + total_discriminator_loss_fake_imgs}"
         )
         print(f"Loss Generator: {total_generator_loss}")
-
-    def generate_noise(self, batch_size, noise_size):
-        noise = torch.randn(batch_size, noise_size, 1, 1)
-        return noise.to(self.device)
 
 
 class ModelGenerator:
