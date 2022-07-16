@@ -1,5 +1,6 @@
 from torch import randn
 
+
 class NoiseGenerator:
     def __init__(self, batch_size, noise_size, device):
         self.batch_size = batch_size
