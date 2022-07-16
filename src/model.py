@@ -71,12 +71,19 @@ class ModelGAN:
 
 
 class ModelGenerator:
-    def __init__(self, model, optimiser):
+    def __init__(self, model, optimiser, tanh_multiplier):
         self.model = model
         self.optimiser = optimiser
+        self.tanh_multiplier = tanh_multiplier
+
+    def forward(self, input):
+        return self.model(input) * self.tanh_multiplier
 
 
 class ModelDiscriminator:
     def __init__(self, model, optimiser):
         self.model = model
         self.optimiser = optimiser
+
+    def forward(self, input):
+        return self.model(input)

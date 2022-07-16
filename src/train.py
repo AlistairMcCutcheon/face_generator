@@ -10,6 +10,7 @@ from generator import Generator
 from torch import nn
 from torch import optim
 from torch import cuda
+from image_transforms import Transforms
 from model import *
 from multiprocessing import cpu_count
 import numpy as np
@@ -36,35 +37,13 @@ def write_image_grid(writer, gan, inverse_transform, epoch):
 
 
 img_size = 64
-required_transforms = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        transforms.Resize((img_size, img_size)),
-        transforms.CenterCrop((img_size, img_size)),
-        # transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ]
-)
-
-# inverse_transform = transforms.Compose(
-#     [
-#         transforms.Normalize((0.0, 0.0, 0.0), (1 / 0.229, 1 / 0.224, 1 / 0.225)),
-#         transforms.Normalize((-0.485, -0.456, -0.406), (1.0, 1.0, 1.0)),
-#     ]
-# )
-
-inverse_transform = transforms.Compose(
-    [
-        transforms.Normalize((0.0, 0.0, 0.0), (1 / 0.5, 1 / 0.5, 1 / 0.5)),
-        transforms.Normalize((-0.5, -0.5, -0.5), (1, 1, 1)),
-    ]
-)
+img_transforms = Transforms(img_size, (0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 
 partitioned_img_paths = FaceDataset.partition_img_paths(
     "data/img_align_celeba/", (0.8, 0.2)
 )
-train_dataset = FaceDataset(partitioned_img_paths[0], required_transforms)
-test_dataset = FaceDataset(partitioned_img_paths[1], required_transforms)
+train_dataset = FaceDataset(partitioned_img_paths[0], img_transforms.input_transforms)
+test_dataset = FaceDataset(partitioned_img_paths[1], img_transforms.input_transforms)
 
 batch_size = 128
 train_dataloader = DataLoader(
@@ -89,7 +68,9 @@ optimiser_discriminator = optim.Adam(
     network_discriminator.parameters(), lr, (adam_beta1, 0.999)
 )
 
-model_generator = ModelGenerator(network_generator, optimiser_generator)
+model_generator = ModelGenerator(
+    network_generator, optimiser_generator, img_transforms.get_tahh_multiplier()
+)
 model_discriminator = ModelDiscriminator(network_discriminator, optimiser_discriminator)
 
 criterion = nn.BCELoss()
@@ -110,10 +91,10 @@ gan = ModelGAN(
 
 
 writer = SummaryWriter()
-train_images = inverse_transform(next(iter(gan.train_dataloader)))
+train_images = img_transforms.ouput_transforms(next(iter(gan.train_dataloader)))
 train_batch_grid = torchvision.utils.make_grid(train_images)
 
-test_images = inverse_transform(next(iter(gan.test_dataloader)))
+test_images = img_transforms.ouput_transforms(next(iter(gan.test_dataloader)))
 test_batch_grid = torchvision.utils.make_grid(test_images)
 
 writer.add_image("sample_batch/train", train_batch_grid, 0)
@@ -123,9 +104,9 @@ writer.add_image("sample_batch/test", test_batch_grid, 0)
 print(len(gan.train_dataloader))
 epochs = 100
 for epoch in range(epochs):
-    write_image_grid(writer, gan, inverse_transform, epoch)
+    write_image_grid(writer, gan, img_transforms.ouput_transforms, epoch)
     gan.train_one_epoch()
 
-write_image_grid(writer, gan, inverse_transform, epochs)
+write_image_grid(writer, gan, img_transforms.ouput_transforms, epochs)
 
 writer.close()
